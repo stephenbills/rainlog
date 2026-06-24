@@ -13,7 +13,6 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: #f2f2f7; }
-
     #app { max-width: 480px; margin: 0 auto; height: 100dvh; display: flex; flex-direction: column; background: #fff; position: relative; }
 
     /* TOP BAR */
@@ -52,23 +51,21 @@
     .view.active { display: flex; }
 
     /* GRAPH VIEW */
-    .graph-view { padding: 16px; gap: 14px; }
-    .section-title { font-size: 13px; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-    .bar-chart-wrap { background: #f5f5f7; border-radius: 12px; padding: 14px 10px 8px; }
-    .bar-chart { display: flex; align-items: flex-end; gap: 3px; height: 140px; padding-bottom: 4px; }
-    .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; height: 100%; justify-content: flex-end; }
-    .bar { width: 100%; background: #1e4976; border-radius: 3px 3px 0 0; transition: height 0.4s ease; }
-    .bar.current { background: #4a9edd; }
-    .bar-lbl { font-size: 9px; color: #aaa; margin-top: 4px; }
-    .bar-amt { font-size: 8px; color: #666; min-height: 11px; }
-    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .stat-card { background: #f5f5f7; border-radius: 10px; padding: 12px 14px; }
-    .stat-label { font-size: 11px; color: #888; margin-bottom: 3px; }
-    .stat-val { font-size: 22px; font-weight: 600; color: #1c1c1e; }
-    .stat-unit { font-size: 12px; color: #888; font-weight: 400; }
-    .year-nav { display: flex; align-items: center; justify-content: center; gap: 16px; }
-    .year-nav button { background: #f0f0f5; border: none; color: #1a3a5c; font-size: 18px; cursor: pointer; width: 32px; height: 32px; border-radius: 16px; }
-    .year-nav span { font-size: 16px; font-weight: 600; color: #1c1c1e; min-width: 50px; text-align: center; }
+    .graph-view { padding: 0; gap: 0; overflow: hidden; }
+    .graph-chart-area { flex: 1; padding: 8px 8px 0; min-height: 0; position: relative; }
+    .graph-chart-area svg { width: 100%; height: 100%; display: block; }
+    .graph-bottom { padding: 8px 12px 10px; flex-shrink: 0; }
+    .year-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 10px; }
+    .year-nav button { background: #f0f0f5; border: none; color: #1a3a5c; font-size: 20px; cursor: pointer; width: 38px; height: 38px; border-radius: 19px; }
+    .year-nav span { font-size: 17px; font-weight: 600; color: #1c1c1e; min-width: 50px; text-align: center; }
+    .legend { display: flex; gap: 14px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #555; }
+    .legend-line { width: 20px; height: 3px; border-radius: 2px; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-card { background: #f5f5f7; border-radius: 10px; padding: 10px 12px; }
+    .stat-label { font-size: 11px; color: #888; margin-bottom: 2px; }
+    .stat-val { font-size: 20px; font-weight: 600; color: #1c1c1e; }
+    .stat-unit { font-size: 11px; color: #888; font-weight: 400; }
 
     /* HISTORY VIEW */
     .history-view { padding: 16px; gap: 16px; }
@@ -80,7 +77,7 @@
     .month-tile.has-data .m-name { color: #7aaacf; }
     .m-val { font-size: 15px; font-weight: 600; color: #1c1c1e; }
     .month-tile.has-data .m-val { color: #e0f0ff; }
-    .export-btn { margin: 0 16px 16px; padding: 13px; border-radius: 10px; font-size: 15px; cursor: pointer; border: 0.5px solid #ddd; background: #f5f5f7; color: #1a3a5c; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .export-btn { margin: 0 0 8px; padding: 13px; border-radius: 10px; font-size: 15px; cursor: pointer; border: 0.5px solid #ddd; background: #f5f5f7; color: #1a3a5c; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
     .export-btn:active { opacity: 0.7; }
     .empty-msg { color: #999; font-size: 14px; padding: 20px 0; text-align: center; }
 
@@ -106,9 +103,9 @@
   <div id="cal-view" class="view active" style="flex-direction:column; overflow:hidden;">
     <div class="top-bar">
       <div class="month-nav">
-        <button onclick="changeMonth(-1)" aria-label="Previous month">‹</button>
+        <button onclick="changeMonth(-1)" aria-label="Previous month">&#8249;</button>
         <h2 id="month-title"></h2>
-        <button onclick="changeMonth(1)" aria-label="Next month">›</button>
+        <button onclick="changeMonth(1)" aria-label="Next month">&#8250;</button>
       </div>
       <div>
         <div class="monthly-total" id="monthly-total">Total: 0.0 mm</div>
@@ -123,26 +120,29 @@
 
   <!-- GRAPH VIEW -->
   <div id="graph-view" class="view graph-view">
-    <div class="year-nav">
-      <button onclick="changeGraphYear(-1)">‹</button>
-      <span id="graph-year"></span>
-      <button onclick="changeGraphYear(1)">›</button>
+    <div class="graph-chart-area">
+      <svg id="graph-svg" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
-    <div class="bar-chart-wrap">
-      <div class="bar-chart" id="bar-chart"></div>
+    <div class="graph-bottom">
+      <div class="year-nav">
+        <button onclick="changeGraphYear(-1)">&#8249;</button>
+        <span id="graph-year"></span>
+        <button onclick="changeGraphYear(1)">&#8250;</button>
+      </div>
+      <div class="legend" id="graph-legend"></div>
+      <div class="stat-grid" id="stat-grid"></div>
     </div>
-    <div class="stat-grid" id="stat-grid"></div>
   </div>
 
   <!-- HISTORY VIEW -->
   <div id="history-view" class="view history-view">
     <div id="history-content"></div>
     <button class="export-btn" onclick="exportCSV()">
-      <svg viewBox="0 0 24 24"><path d="M12 15V3m0 12-4-4m4 4 4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"/></svg>
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 12-4-4m4 4 4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"/></svg>
       Export CSV
     </button>
     <button class="export-btn" onclick="document.getElementById('csv-import').click()">
-      <svg viewBox="0 0 24 24"><path d="M12 3v12m0-12 4 4m-4-4L8 7M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"/></svg>
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0-12 4 4m-4-4L8 7M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"/></svg>
       Import CSV
     </button>
     <input type="file" id="csv-import" accept=".csv" style="display:none" onchange="importCSV(event)" />
@@ -185,6 +185,8 @@
 <script>
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const YEAR_COLORS = ['#4a9edd', '#e8884a', '#4caf7d'];
+const YEAR_LABELS = ['This year', 'Last year', '2 years ago'];
 
 let rainData = {};
 let curYear, curMonth, graphYear, editKey;
@@ -237,8 +239,7 @@ function renderCalendar() {
   let total = 0;
 
   for (let i = 0; i < firstDay; i++) {
-    const cell = makeCell(prevDays - firstDay + 1 + i, true, false, false, null);
-    grid.appendChild(cell);
+    grid.appendChild(makeCell(prevDays - firstDay + 1 + i, true, false, false, null));
   }
   for (let d = 1; d <= daysInMonth; d++) {
     const k = dk(curYear, curMonth, d);
@@ -318,39 +319,113 @@ function changeGraphYear(dir) {
   renderGraph();
 }
 
+function getYearTotals(y) {
+  const totals = [];
+  for (let m = 0; m < 12; m++) totals.push(monthTotal(y, m));
+  return totals;
+}
+
 function renderGraph() {
   document.getElementById('graph-year').textContent = graphYear;
-  const totals = [];
-  let maxVal = 0, annualTotal = 0, wetDays = 0, maxMI = 0;
+
+  const years = [graphYear, graphYear - 1, graphYear - 2];
+  const allTotals = years.map(y => getYearTotals(y));
+
+  // Stats for primary year
+  const primary = allTotals[0];
+  let annualTotal = 0, wetDays = 0, maxMI = 0, maxVal = 0;
   for (let m = 0; m < 12; m++) {
     const days = new Date(graphYear, m+1, 0).getDate();
-    let t = 0;
-    for (let d = 1; d <= days; d++) { const v = rainData[dk(graphYear,m,d)]; if (v != null) { t += v; wetDays++; } }
-    totals.push(t);
-    annualTotal += t;
-    if (t > maxVal) { maxVal = t; maxMI = m; }
+    for (let d = 1; d <= days; d++) { const v = rainData[dk(graphYear,m,d)]; if (v != null) wetDays++; }
+    annualTotal += primary[m];
+    if (primary[m] > maxVal) { maxVal = primary[m]; maxMI = m; }
   }
 
-  const chart = document.getElementById('bar-chart');
-  chart.innerHTML = '';
-  const isCurYear = graphYear === now.getFullYear();
-  totals.forEach((t, i) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'bar-wrap';
-    const pct = maxVal > 0 ? (t / maxVal * 100) : 0;
-    const isCur = isCurYear && i === now.getMonth();
-    wrap.innerHTML =
-      '<span class="bar-amt">' + (t > 0 ? Math.round(t) : '') + '</span>' +
-      '<div class="bar' + (isCur ? ' current' : '') + '" style="height:' + (t > 0 ? Math.max(pct, 3) : 0) + '%"></div>' +
-      '<span class="bar-lbl">' + SHORT[i].charAt(0) + '</span>';
-    chart.appendChild(wrap);
-  });
+  // Find global max across all 3 years for scaling
+  const globalMax = Math.max(...allTotals.flat(), 1);
 
+  // Draw SVG chart
+  const svg = document.getElementById('graph-svg');
+  const W = svg.clientWidth || 350;
+  const H = svg.clientHeight || 280;
+  const padL = 36, padR = 8, padT = 16, padB = 24;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const barW = (chartW / 12) * 0.5;
+  const barGap = chartW / 12;
+
+  // Grid lines
+  const gridLines = 4;
+  let svgContent = '';
+
+  // Background grid
+  for (let i = 0; i <= gridLines; i++) {
+    const y = padT + chartH - (i / gridLines) * chartH;
+    const val = Math.round((i / gridLines) * globalMax);
+    svgContent += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#e8e8e8" stroke-width="0.5"/>`;
+    svgContent += `<text x="${padL - 4}" y="${y + 4}" text-anchor="end" font-size="9" fill="#aaa">${val}</text>`;
+  }
+
+  // Bars for primary year
+  for (let m = 0; m < 12; m++) {
+    const x = padL + m * barGap + barGap / 2 - barW / 2;
+    const val = primary[m];
+    const bh = (val / globalMax) * chartH;
+    const by = padT + chartH - bh;
+    const isCurMonth = graphYear === now.getFullYear() && m === now.getMonth();
+    const fill = isCurMonth ? '#4a9edd' : '#1e4976';
+    if (val > 0) {
+      svgContent += `<rect x="${x}" y="${by}" width="${barW}" height="${bh}" fill="${fill}" rx="2"/>`;
+      if (bh > 14) {
+        svgContent += `<text x="${x + barW/2}" y="${by - 2}" text-anchor="middle" font-size="8" fill="#555">${Math.round(val)}</text>`;
+      }
+    }
+    // Month label
+    svgContent += `<text x="${padL + m * barGap + barGap/2}" y="${H - 4}" text-anchor="middle" font-size="9" fill="#999">${SHORT[m].charAt(0)}</text>`;
+  }
+
+  // Overlay lines for previous 2 years
+  for (let yi = 1; yi <= 2; yi++) {
+    const yTotals = allTotals[yi];
+    const hasData = yTotals.some(v => v > 0);
+    if (!hasData) continue;
+    const color = YEAR_COLORS[yi];
+    let points = '';
+    for (let m = 0; m < 12; m++) {
+      const cx = padL + m * barGap + barGap / 2;
+      const cy = padT + chartH - (yTotals[m] / globalMax) * chartH;
+      points += (m === 0 ? `M${cx},${cy}` : ` L${cx},${cy}`);
+    }
+    svgContent += `<path d="${points}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    // Dots
+    for (let m = 0; m < 12; m++) {
+      if (yTotals[m] > 0) {
+        const cx = padL + m * barGap + barGap / 2;
+        const cy = padT + chartH - (yTotals[m] / globalMax) * chartH;
+        svgContent += `<circle cx="${cx}" cy="${cy}" r="3" fill="${color}"/>`;
+      }
+    }
+  }
+
+  svg.innerHTML = svgContent;
+
+  // Legend
+  const legendEl = document.getElementById('graph-legend');
+  legendEl.innerHTML = years.map((y, i) => {
+    const hasData = allTotals[i].some(v => v > 0);
+    if (!hasData) return '';
+    const style = i === 0
+      ? `background:${YEAR_COLORS[0]}; height:10px; border-radius:2px;`
+      : `background:${YEAR_COLORS[i]}; height:3px;`;
+    return `<div class="legend-item"><div class="legend-line" style="${style}"></div>${y}</div>`;
+  }).join('');
+
+  // Stats
   document.getElementById('stat-grid').innerHTML =
-    '<div class="stat-card"><div class="stat-label">Annual total</div><div class="stat-val">' + annualTotal.toFixed(1) + ' <span class="stat-unit">mm</span></div></div>' +
-    '<div class="stat-card"><div class="stat-label">Wet days</div><div class="stat-val">' + wetDays + ' <span class="stat-unit">days</span></div></div>' +
-    '<div class="stat-card"><div class="stat-label">Wettest month</div><div class="stat-val" style="font-size:18px">' + (maxVal > 0 ? SHORT[maxMI] : '—') + '</div></div>' +
-    '<div class="stat-card"><div class="stat-label">Monthly avg</div><div class="stat-val">' + (annualTotal > 0 ? (annualTotal/12).toFixed(1) : '0') + ' <span class="stat-unit">mm</span></div></div>';
+    `<div class="stat-card"><div class="stat-label">Annual total</div><div class="stat-val">${annualTotal.toFixed(1)} <span class="stat-unit">mm</span></div></div>` +
+    `<div class="stat-card"><div class="stat-label">Wet days</div><div class="stat-val">${wetDays} <span class="stat-unit">days</span></div></div>` +
+    `<div class="stat-card"><div class="stat-label">Wettest month</div><div class="stat-val" style="font-size:18px">${maxVal > 0 ? SHORT[maxMI] : '—'}</div></div>` +
+    `<div class="stat-card"><div class="stat-label">Monthly avg</div><div class="stat-val">${annualTotal > 0 ? (annualTotal/12).toFixed(1) : '0'} <span class="stat-unit">mm</span></div></div>`;
 }
 
 function renderHistory() {
@@ -363,12 +438,10 @@ function renderHistory() {
   el.innerHTML = years.map(y => {
     const tiles = SHORT.map((name, m) => {
       const t = monthTotal(+y, m);
-      return '<div class="month-tile' + (t > 0 ? ' has-data' : '') + '">' +
-        '<div class="m-name">' + name + '</div>' +
-        '<div class="m-val">' + (t > 0 ? t.toFixed(1) : '—') + '</div></div>';
+      return `<div class="month-tile${t > 0 ? ' has-data' : ''}"><div class="m-name">${name}</div><div class="m-val">${t > 0 ? t.toFixed(1) : '—'}</div></div>`;
     }).join('');
     const yr_total = SHORT.reduce((s, _, m) => s + monthTotal(+y, m), 0);
-    return '<div class="year-block"><h3>' + y + ' <span style="font-size:13px;font-weight:400;color:#888">' + yr_total.toFixed(1) + ' mm total</span></h3><div class="month-grid">' + tiles + '</div></div>';
+    return `<div class="year-block"><h3>${y} <span style="font-size:13px;font-weight:400;color:#888">${yr_total.toFixed(1)} mm total</span></h3><div class="month-grid">${tiles}</div></div>`;
   }).join('<div style="height:16px;border-bottom:0.5px solid #eee;margin-bottom:16px"></div>');
 }
 
@@ -411,6 +484,10 @@ function importCSV(event) {
   };
   reader.readAsText(file);
 }
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('graph-view').classList.contains('active')) renderGraph();
+});
 
 document.getElementById('rain-input').addEventListener('keydown', e => { if (e.key === 'Enter') saveRain(); });
 
