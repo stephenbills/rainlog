@@ -141,6 +141,11 @@
       <svg viewBox="0 0 24 24"><path d="M12 15V3m0 12-4-4m4 4 4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"/></svg>
       Export CSV
     </button>
+    <button class="export-btn" onclick="document.getElementById('csv-import').click()">
+      <svg viewBox="0 0 24 24"><path d="M12 3v12m0-12 4 4m-4-4L8 7M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"/></svg>
+      Import CSV
+    </button>
+    <input type="file" id="csv-import" accept=".csv" style="display:none" onchange="importCSV(event)" />
   </div>
 
   <!-- BOTTOM NAV -->
@@ -375,6 +380,36 @@ function exportCSV() {
   a.href = URL.createObjectURL(blob);
   a.download = 'rainlog-' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
+}
+
+function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l);
+    let imported = 0, skipped = 0;
+    lines.forEach(line => {
+      if (line.startsWith('Date')) return;
+      const parts = line.split(',');
+      if (parts.length < 2) return;
+      const dateStr = parts[0].trim();
+      const val = parseFloat(parts[1]);
+      if (isNaN(val)) return;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        rainData[dateStr] = val;
+        imported++;
+      } else {
+        skipped++;
+      }
+    });
+    save();
+    renderCalendar();
+    renderHistory();
+    event.target.value = '';
+    alert('Imported ' + imported + ' entries.' + (skipped > 0 ? '\n' + skipped + ' rows skipped (unrecognised date format).' : ''));
+  };
+  reader.readAsText(file);
 }
 
 document.getElementById('rain-input').addEventListener('keydown', e => { if (e.key === 'Enter') saveRain(); });
